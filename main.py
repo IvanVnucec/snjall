@@ -96,6 +96,7 @@ class Njuskalo:
 
     def get_categories(self):
         resp = self.iapi_get("sitemap")
+        assert len(resp.text) > 0
         soup = BeautifulSoup(resp.text, "html.parser")
         pssg_std_uls = soup.find("div", class_="passage-standard").find_all("ul", recursive=False)
         assert len(pssg_std_uls) == 2
@@ -108,7 +109,7 @@ class Njuskalo:
 
         response = self.iapi_get(args)
         # TODO: add exception handling
-        assert response.text > 0
+        assert len(response.text) > 0
         soup = BeautifulSoup(response.text, 'html.parser')
         scraped = soup.find_all("li", class_="EntityList-item--Regular")
         filtered = filter(lambda i: i.find("span", class_="icon-item feature feature--User") != None, scraped)
@@ -162,8 +163,8 @@ def main():
     import concurrent.futures
     with concurrent.futures.ProcessPoolExecutor() as executor:
         args = [(njuskalo, ctg, Location.GradZagreb) for ctg in ctgs]
-        for i,ctg,items in enumerate(zip(ctgs, executor.map(get_all_items, *zip(*args))), start=1):
-            print(f"{i}. {ctg}: {len(items)}")
+        for ctg,items in zip(ctgs, executor.map(get_all_items, *zip(*args))):
+            print(f"{ctg}: {len(items)}")
 
     print("Done.")
 
